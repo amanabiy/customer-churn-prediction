@@ -26,50 +26,51 @@ def prepare_input(credit_score, location, geneder, age, tenure, balance,
                   estimated_salary):
 
   input_dict = {
-      "credit_score": credit_score,
-      "age": int(age),
-      "tenure": int(tenure),
-      "balance": float(balance),
-      "num_products": num_products,
-      "has_credit_card": int(has_credit_card),
-      "is_active_member": int(is_active_member),
-      "estimated_salary": estimated_salary,
+      "CreditScore": credit_score,
+      "Age": int(age),
+      "Tenure": int(tenure),
+      "Balance": float(balance),
+      "NumOfProducts": num_products,
+      "HasCrCard": int(has_credit_card),
+      "IsActiveMember": int(is_active_member),
+      "EstimatedSalary": estimated_salary,
       "Geography_France": 1 if location == "France" else 0,
       "Geography_Germany": 1 if location == "Germany" else 0,
       "Geography_Spain": 1 if location == "Spain" else 0,
-      "Gender_Male": 1 if geneder == "Male" else 0,
       "Gender_Female": 1 if geneder == "Female" else 0,
-        }
+      "Gender_Male": 1 if geneder == "Male" else 0,
+      "CLV": balance * estimated_salary / 100000,
+      "TenureAgeRatio": int(tenure) / (int(age) if int(age) > 0 else 1),
+      "AgeGroup_MiddleAge": 1 if 30 <= int(age) < 50 else 0,
+      "AgeGroup_Senior": 1 if int(age) >= 50 else 0,
+      "AgeGroup_Elderly": 1 if int(age) >= 65 else 0,
+  }
 
   input_df = pd.DataFrame([input_dict])
   return input_df, input_dict
 
 
 # Loading all the models with trained
-xgboost_model = load_model("./models/xgb_model.pkl")
-naive_bayes_model = load_model("./models/nb_model.pkl")
-random_forest_model = load_model("./models/rf_model.pkl")
-decision_tree_model = load_model("./models/dt_model.pkl")
-svm_model = load_model("./models/svm_model.pkl")
-knn_model = load_model("./models/knn_model.pkl")
-voting_classifier_model = load_model("./models/voting_clf.pkl")
+# naive_bayes_model = load_model("./models/nb_model.pkl")
+# random_forest_model = load_model("./models/rf_model.pkl")
+# decision_tree_model = load_model("./models/dt_model.pkl")
+# svm_model = load_model("./models/svm_model.pkl")
+# knn_model = load_model("./models/knn_model.pkl")
+# voting_classifier_model = load_model("./models/voting_clf_new.pkl")
+# xgboost_fetureEngineered_model = load_model("./models/xgboost_mode.pkl")
 xgboost_SMOTE_model = load_model("./models/xgboost-SMOTE.pkl")
-xgboost_fetureEngineered_model = load_model("./models/xgboost_mode.pkl")
+ada_model = load_model("./models/ada_model.pkl")
+grb_model = load_model("./models/grb_model.pkl")
 
 
-def make_predictions(input_df, input_dict):
+def make_predictions(input_df):
   probabilities = {
-      "XGBoost": xgboost_model.predict_proba(input_df)[0][1],
-      "Random Forest": random_forest_model.predict_proba(input_df)[0][1],
-      "K-Nearest Neighbors": knn_model.predict_proba(input_df)[0][1],
+      "AdaBoostClassifier": ada_model.predict_proba(input_df)[0][1],
+      "GradientBoostingClassifier": grb_model.predict_proba(input_df)[0][1],
+      "xgboost_SMOTE_model": xgboost_SMOTE_model.predict_proba(input_df)[0][1],
   }
 
   avg_probability = np.mean(list(probabilities.values()))
-# st.markdown("### Model Probabilities")
-
-  # for model, probl in probabilities.items():
-  #   st.write(f"{model}: {probl}")
-  # st.write(f"Average Probability: {avg_probability}")
   col1, col2 = st.columns(2)
 
   with col1:
@@ -119,8 +120,6 @@ def explain_prediction(probability, input_dict, surname):
   | Gender_Male          | 0.000000      |
   ----------------------------------------
 
-  {pd.set_option('display.max_columns', None)}
-
   Here are summary statistics for churned customers:
   {df[df['Exited'] == 1].describe()}
 
@@ -137,7 +136,7 @@ def explain_prediction(probability, input_dict, surname):
 
   Don't mention the probability of churning, or the machine learning mode, or say
   anything like "Based on the machine learning model's prediction and top 10 most
-  important features", just explanin the prediction.
+  important features", just explanin the prediction. Don't show the thinking process.
   """
 
   print("EXPLANATION PROMPT", prompt)
@@ -249,9 +248,9 @@ if selected_customer_option:
   input_df, input_dict = prepare_input(credit_score, location, gender, age,
                                        tenure, balance, num_products,
                                        has_credit_card, is_active_member,
-estimated_salary)
+                                       estimated_salary)
 
-  avg_probability = make_predictions(input_df, input_dict)
+  avg_probability = make_predictions(input_df)
   explanation = explain_prediction(avg_probability, input_dict,
                                    selected_surname)
 
