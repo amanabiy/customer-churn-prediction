@@ -39,7 +39,7 @@ def prepare_input(credit_score, location, geneder, age, tenure, balance,
       "Geography_Spain": 1 if location == "Spain" else 0,
       "Gender_Male": 1 if geneder == "Male" else 0,
       "Gender_Female": 1 if geneder == "Female" else 0,
-  }
+        }
 
   input_df = pd.DataFrame([input_dict])
   return input_df, input_dict
@@ -65,7 +65,7 @@ def make_predictions(input_df, input_dict):
   }
 
   avg_probability = np.mean(list(probabilities.values()))
-  # st.markdown("### Model Probabilities")
+# st.markdown("### Model Probabilities")
 
   # for model, probl in probabilities.items():
   #   st.write(f"{model}: {probl}")
@@ -181,7 +181,7 @@ def generate_email(probability, input_dict, explanation, surname):
 
 st.title("Customer Churn Prediction")
 
-df = pd.read_csv("churn.csv")
+df = pd.read_csv("./data/churn.csv")
 
 customers = [
     f"{row['CustomerId']} - {row['Surname']}" for _, row in df.iterrows()
@@ -249,7 +249,7 @@ if selected_customer_option:
   input_df, input_dict = prepare_input(credit_score, location, gender, age,
                                        tenure, balance, num_products,
                                        has_credit_card, is_active_member,
-                                       estimated_salary)
+estimated_salary)
 
   avg_probability = make_predictions(input_df, input_dict)
   explanation = explain_prediction(avg_probability, input_dict,
